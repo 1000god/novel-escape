@@ -1,0 +1,27 @@
+{
+  "name": "我的主角從書中跑出來怎麼辦？",
+  "short_name": "主角跑出來了",
+  "description": "靈氣復甦，你的創作成真了——書中主角找上門來了。AI 對話、戀愛養成、異能開發的放置冒險遊戲。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f4ed",
+  "theme_color": "#3d2e1a",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="主角跑出來了">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3d2e1a">
+<link rel="manifest" href="manifest.json">
+<title>我的主角從書中跑出來怎麼辦？</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1c1408;--ink2:#3d2e1a;--ink3:#7a6550;--ink4:#b8a898;
+  --paper:#f8f4ed;--paper2:#f0e9d8;--paper3:#e4d9c4;--paper4:#d5c8b0;
+  --gold:#c07d1a;--gold2:#e8a83a;--gold-l:rgba(192,125,26,.13);
+  --jade:#1e7a52;--jade2:#35a870;--jade-l:rgba(30,122,82,.12);
+  --crimson:#952820;--crimson2:#c8403a;--crimson-l:rgba(149,40,32,.11);
+  --rose:#a33060;--rose2:#cc5282;--rose-l:rgba(163,48,96,.11);
+  --lav:#5a52a8;--lav2:#7d76cc;--lav-l:rgba(90,82,168,.11);
+  --r6:6px;--r10:10px;--r14:14px;--r20:20px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+body{font-family:-apple-system,'Noto Sans TC',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;min-height:100%;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);-webkit-tap-highlight-color:transparent}
+#root{max-width:600px;margin:0 auto;padding:0 14px 80px}
+.screen{display:none}.screen.active{display:block}
+
+/* SETUP */
+.hero{text-align:center;padding:1.5rem 0 1rem}
+.hero-title{font-family:Georgia,serif;font-size:19px;font-weight:700;line-height:1.45;color:var(--ink)}
+.hero-sub{font-size:12px;color:var(--ink3);margin-top:5px}
+.divider{width:48px;height:2px;background:var(--gold);margin:.75rem auto 0;border-radius:2px}
+.card{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r14);padding:1rem 1.1rem;margin-bottom:.7rem}
+.card-h{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:.75rem}
+.fl{font-size:11px;color:var(--ink3);display:block;margin-bottom:3px;margin-top:8px}
+.fl:first-of-type{margin-top:0}
+input[type=text],textarea{width:100%;border:1px solid var(--paper3);border-radius:var(--r6);padding:8px 11px;font-size:13px;background:var(--paper);color:var(--ink);font-family:inherit;outline:none;-webkit-appearance:none}
+input[type=text]:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:55px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:.4rem 0}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:.4rem 0}
+.ob{padding:9px 6px;border:1.5px solid var(--paper3);border-radius:var(--r6);background:var(--paper);cursor:pointer;text-align:center;font-family:inherit;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.ob .oi{font-size:20px;display:block;margin-bottom:2px}
+.ob .on{font-size:11px;font-weight:600;display:block;color:var(--ink2)}
+.ob .od{font-size:10px;color:var(--ink3);display:block;margin-top:1px}
+.ob.sel{background:var(--gold-l);border-color:var(--gold);color:var(--ink2)}
+.ob.sel .od{color:var(--gold)}
+.start-btn{width:100%;padding:15px;background:var(--ink2);color:var(--paper);border:none;border-radius:var(--r14);font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;font-family:Georgia,serif;letter-spacing:.3px;transition:all .2s;-webkit-tap-highlight-color:transparent}
+
+/* GAME HEADER */
+.ghdr{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0 .4rem;border-bottom:1px solid var(--paper3);margin-bottom:.6rem}
+.gtitle{font-family:Georgia,serif;font-size:13px;color:var(--ink2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+.day-tag{font-size:11px;color:var(--ink3);background:var(--paper2);border:1px solid var(--paper3);border-radius:20px;padding:2px 9px;white-space:nowrap}
+
+/* HUD */
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:.55rem}
+.hc{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r6);padding:7px 8px;text-align:center}
+.hl{font-size:10px;color:var(--ink3)}
+.hv{font-size:16px;font-weight:700;line-height:1.1}
+.hv-g{color:var(--gold)}.hv-j{color:var(--jade)}.hv-c{color:var(--crimson)}.hv-l{color:var(--lav)}
+
+.pb-w{margin-bottom:.45rem}
+.pb-r{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:2px}
+.pb-t{height:5px;background:var(--paper3);border-radius:3px;overflow:hidden}
+.pb-f{height:100%;border-radius:3px;transition:width .5s ease}
+.pf-g{background:var(--gold)}.pf-j{background:var(--jade)}.pf-r{background:var(--rose)}.pf-l{background:var(--lav)}
+
+/* EMOTION */
+.em-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:.55rem;transition:all .4s}
+.em-calm{background:var(--jade-l);color:var(--jade)}.em-happy{background:var(--gold-l);color:var(--gold)}
+.em-angry{background:var(--crimson-l);color:var(--crimson)}.em-sad{background:var(--lav-l);color:var(--lav)}
+.em-curious{background:var(--lav-l);color:var(--lav2)}.em-tsundere{background:var(--rose-l);color:var(--rose)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1.5px solid var(--paper3);margin-bottom:.65rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tb{padding:7px 10px;border:none;background:none;cursor:pointer;font-size:11px;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;font-family:inherit;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.tb.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:600}
+.panel{display:none}.panel.active{display:block}
+
+/* CHAT */
+.chat-win{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r14);padding:.9rem;min-height:220px;max-height:42vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:.6rem;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.me{flex-direction:row-reverse}
+.av{width:33px;height:33px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid var(--paper3)}
+.av-c{background:var(--gold-l)}.av-a{background:var(--jade-l)}
+.bub{max-width:80%;padding:9px 12px;border-radius:var(--r14);font-size:12.5px;line-height:1.7;word-break:break-word}
+.b-c{background:var(--paper);border:1px solid var(--paper3);border-top-left-radius:4px}
+.b-a{background:var(--ink2);color:var(--paper);border-top-right-radius:4px}
+.mtime{font-size:10px;color:var(--ink4);align-self:flex-end;flex-shrink:0}
+
+/* CHOICE SYSTEM */
+.choice-box{background:var(--paper);border:1px solid var(--paper3);border-radius:var(--r14);padding:.85rem;margin-bottom:.6rem}
+.choice-hint{font-size:11px;color:var(--ink3);margin-bottom:.55rem}
+.choice-list{display:flex;flex-direction:column;gap:6px}
+.choice-btn{padding:9px 13px;border:1.5px solid var(--paper3);border-radius:var(--r10);background:var(--paper2);cursor:pointer;text-align:left;font-size:12.5px;color:var(--ink2);font-family:inherit;transition:all .18s;line-height:1.5;-webkit-tap-highlight-color:transparent;width:100%}
+.choice-btn:active{transform:scale(.98);background:var(--gold-l);border-color:var(--gold)}
+.c-eff{font-size:11px;color:var(--ink3);margin-top:3px;display:block}
+.c-eff.pos{color:var(--jade)}.c-eff.neg{color:var(--crimson)}.c-eff.mix{color:var(--gold)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.55rem}
+.chip{padding:5px 11px;border:1px solid var(--paper3);border-radius:20px;background:var(--paper);cursor:pointer;font-size:11px;color:var(--ink2);font-family:inherit;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.chip:active{background:var(--gold-l);border-color:var(--gold);color:var(--gold)}
+
+.chat-row{display:flex;gap:6px;align-items:flex-end}
+.chat-row textarea{flex:1;min-height:38px;max-height:80px;border-radius:var(--r6);font-size:13px;-webkit-appearance:none}
+.send-btn{padding:9px 14px;background:var(--ink2);color:var(--paper);border:none;border-radius:var(--r6);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.send-btn:active{transform:scale(.96)}
+.ai-st{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3);margin-bottom:.4rem}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--jade)}
+.ai-dot.busy{background:var(--gold);animation:pl .8s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* WRITE */
+.wcard{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r14);padding:1rem 1.1rem;margin-bottom:.65rem}
+.wcard h3{font-family:Georgia,serif;font-size:13px;color:var(--ink2);margin-bottom:6px}
+.req-pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;background:var(--gold-l);color:var(--gold);margin-bottom:8px;border:1px solid rgba(192,125,26,.22)}
+.wcard textarea{min-height:100px;font-size:13px;line-height:1.8;-webkit-appearance:none}
+.wc-row{display:flex;justify-content:flex-end;font-size:10px;color:var(--ink3);margin-top:3px}
+.btn-row{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.bp{padding:8px 14px;background:var(--ink2);color:var(--paper);border:none;border-radius:var(--r6);cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.bp:active{transform:scale(.96)}
+.bs{padding:8px 11px;background:var(--paper);border:1px solid var(--paper3);border-radius:var(--r6);cursor:pointer;font-size:11px;color:var(--ink2);font-family:inherit;-webkit-tap-highlight-color:transparent}
+.bs:active{background:var(--paper3)}
+
+/* QUEST */
+.qcard{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r10);padding:.85rem;margin-bottom:7px}
+.qhdr{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px}
+.qtitle{font-size:12.5px;font-weight:600;color:var(--ink)}
+.qbadge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.qb-m{background:var(--gold-l);color:var(--gold)}.qb-s{background:var(--jade-l);color:var(--jade)}.qb-d{background:var(--paper3);color:var(--ink3)}
+.qdesc{font-size:11px;color:var(--ink3);line-height:1.5;margin-bottom:7px}
+.qprog{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.qpbar{flex:1;height:3px;background:var(--paper3);border-radius:3px;overflow:hidden}
+.qpfill{height:100%;border-radius:3px;background:var(--gold);transition:width .4s}
+.qptxt{font-size:10px;color:var(--ink3);white-space:nowrap}
+.qreward{font-size:10px;color:var(--jade);background:var(--jade-l);display:inline-block;padding:2px 8px;border-radius:10px}
+.qclaim{margin-left:7px;padding:4px 12px;background:var(--jade);color:#fff;border:none;border-radius:10px;font-size:11px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* EVENTS */
+.ecard{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r10);padding:.8rem .9rem;margin-bottom:7px;display:flex;gap:9px}
+.eicon{font-size:19px;flex-shrink:0;margin-top:1px}
+.etitle{font-size:12.5px;font-weight:600;margin-bottom:2px}
+.edesc{font-size:11px;color:var(--ink3);line-height:1.5}
+.eacts{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.ebtn{padding:5px 12px;border:1px solid var(--paper3);border-radius:20px;background:var(--paper);font-size:11px;cursor:pointer;color:var(--ink2);font-family:inherit;-webkit-tap-highlight-color:transparent}
+.ebtn:active{transform:scale(.96)}
+.ebtn.ok{border-color:var(--jade);color:var(--jade);background:var(--jade-l)}
+.ebtn.ug{border-color:var(--crimson);color:var(--crimson);background:var(--crimson-l)}
+.bdg{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;margin-left:5px}
+.bu{background:var(--crimson-l);color:var(--crimson)}.bi{background:var(--gold-l);color:var(--gold)}
+
+/* LOVE */
+.lstages{display:flex;gap:3px;margin-top:7px}
+.ls{flex:1;padding:4px 3px;border:1px solid var(--paper3);border-radius:var(--r6);text-align:center;font-size:10px;color:var(--ink3)}
+.ls.on{background:var(--rose-l);border-color:var(--rose);color:var(--rose);font-weight:600}
+.lev-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--paper3)}
+.lev-item:last-child{border-bottom:none}
+.mem-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--paper3);align-items:flex-start}
+.mem-item:last-child{border-bottom:none}
+.mem-day{font-size:10px;color:var(--gold);font-weight:600;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.mem-txt{font-size:11.5px;color:var(--ink2);line-height:1.55}
+
+/* POWER */
+.pw-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pw-card{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r10);padding:.85rem}
+.pw-name{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.pw-desc{font-size:11px;color:var(--ink3);margin-bottom:6px;line-height:1.5}
+.pw-bar{height:3px;background:var(--paper3);border-radius:3px;margin-top:4px}
+.pw-fill{height:100%;border-radius:3px;transition:width .4s}
+.pw-locked{opacity:.4}
+.lk-hint{font-size:10px;color:var(--ink3)}
+.upg-btn{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid;background:none;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.upg-btn:active{transform:scale(.95)}
+
+/* SHOP */
+.sh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sh-item{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r10);padding:.75rem .65rem;text-align:center;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.sh-item:active{transform:scale(.95);border-color:var(--gold)}
+.sh-ico{font-size:22px;margin-bottom:3px}
+.sh-name{font-size:11px;font-weight:600;color:var(--ink2)}
+.sh-price{font-size:10px;color:var(--jade);margin-top:1px}
+.sh-eff{font-size:9.5px;color:var(--ink3);margin-top:1px}
+
+/* LEADERBOARD */
+.lb-row{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--r10);padding:.65rem .9rem;margin-bottom:5px;display:flex;align-items:center;gap:9px}
+.rank-n{font-family:Georgia,serif;font-size:16px;font-weight:700;width:24px;text-align:center;flex-shrink:0;color:var(--ink3)}
+.rn-1{color:var(--gold)}.rn-2{color:var(--ink2)}.rn-3{color:var(--gold)}
+.p-av{width:32px;height:32px;border-radius:50%;background:var(--gold-l);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.p-name{font-size:12px;font-weight:600}.p-sub{font-size:10px;color:var(--ink3)}
+.p-esc{font-size:12px;font-weight:700;color:var(--lav)}
+.od{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px}
+.od-on{background:var(--jade)}.od-off{background:var(--paper4)}
+
+/* ENDING */
+.ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ed-card{background:var(--paper2);border:1.5px solid var(--paper3);border-radius:var(--r14);padding:1rem;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.ed-card.unlocked{border-color:var(--gold);background:var(--gold-l)}
+.ed-card.locked{opacity:.52;cursor:default}
+.ed-icon{font-size:26px;margin-bottom:5px}
+.ed-title{font-family:Georgia,serif;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ed-cond{font-size:10px;color:var(--ink3);line-height:1.5}
+.ed-badge{position:absolute;top:10px;right:10px;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600}
+.ed-card.unlocked .ed-badge{background:var(--gold);color:#fff}
+.ed-card.locked .ed-badge{background:var(--paper3);color:var(--ink3)}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(26,16,8,.78);z-index:100;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .28s}
+.modal-ov.show{opacity:1;pointer-events:all}
+.modal-box{background:var(--paper);border-radius:var(--r14);padding:1.75rem 1.5rem;max-width:360px;width:100%;text-align:center}
+.modal-em{font-size:48px;display:block;margin-bottom:.6rem}
+.modal-tit{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:.45rem}
+.modal-body{font-size:12.5px;color:var(--ink3);line-height:1.75;margin-bottom:1.1rem}
+.modal-cl{padding:10px 28px;background:var(--ink2);color:var(--paper);border:none;border-radius:var(--r6);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* INSTALL BANNER */
+.install-banner{background:var(--ink2);color:var(--paper);padding:10px 14px;border-radius:var(--r10);margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}
+.install-banner button{padding:5px 13px;background:var(--gold);color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;font-family:inherit}
+.install-banner .close-btn{background:none;border:none;color:var(--paper4);cursor:pointer;font-size:16px;padding:0;line-height:1}
+
+.save-dot{width:7px;height:7px;border-radius:50%;background:var(--jade);opacity:0;transition:opacity .4s;display:inline-block;margin-left:5px}
+.save-dot.show{opacity:1}
+.sec-hd{font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.4px;text-transform:uppercase;margin:.9rem 0 .45rem;padding-bottom:3px;border-bottom:1px solid var(--paper3)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(20px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(14px);z-index:9999;background:var(--ink2);color:var(--paper);border-radius:20px;padding:9px 18px;font-size:12px;font-weight:500;opacity:0;transition:all .28s;pointer-events:none;max-width:88vw;text-align:center;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* PWA splash */
+@media (display-mode: standalone){
+  body{padding-top:max(var(--safe-top), 12px)}
+}
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- SETUP -->
+<div id="s-setup" class="screen active">
+  <div class="hero">
+    <div style="font-size:50px;margin-bottom:.4rem">📖</div>
+    <div class="hero-title">我的主角從書中跑出來怎麼辦？</div>
+    <div class="hero-sub">靈氣復甦，你的創作成真了——書中主角找上門來了</div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">✍️ 你的作者身份</div>
+    <label class="fl">筆名</label>
+    <input type="text" id="i-author" placeholder="例：月影先生、星河筆記…" maxlength="12">
+    <label class="fl">正在連載的小說</label>
+    <input type="text" id="i-book" placeholder="例：《劍破九霄》、《都市之王》…" maxlength="20">
+  </div>
+
+  <div class="card">
+    <div class="card-h">📚 書籍類型</div>
+    <div class="g3">
+      <button class="ob sel" data-g="genre" data-v="xianxia" onclick="pick(this)"><span class="oi">⚔️</span><span class="on">修仙武俠</span></button>
+      <button class="ob" data-g="genre" data-v="urban" onclick="pick(this)"><span class="oi">🏙️</span><span class="on">都市異能</span></button>
+      <button class="ob" data-g="genre" data-v="fantasy" onclick="pick(this)"><span class="oi">🐉</span><span class="on">異世界奇幻</span></button>
+      <button class="ob" data-g="genre" data-v="romance" onclick="pick(this)"><span class="oi">💕</span><span class="on">言情甜寵</span></button>
+      <button class="ob" data-g="genre" data-v="scifi" onclick="pick(this)"><span class="oi">🚀</span><span class="on">星際科幻</span></button>
+      <button class="ob" data-g="genre" data-v="horror" onclick="pick(this)"><span class="oi">👻</span><span class="on">懸疑驚悚</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">🧙 書中主角設定</div>
+    <label class="fl">主角姓名</label>
+    <input type="text" id="i-char" placeholder="例：李慕白、葉辰、蘇晚…" maxlength="8">
+    <label class="fl">主角類型</label>
+    <div class="g2">
+      <button class="ob sel" data-g="ctype" data-v="hero" onclick="pick(this)"><span class="oi">⚡</span><span class="on">熱血英雄型</span><span class="od">衝動、要求多</span></button>
+      <button class="ob" data-g="ctype" data-v="cool" onclick="pick(this)"><span class="oi">❄️</span><span class="on">高冷傲嬌型</span><span class="od">冷漠、標準極高</span></button>
+      <button class="ob" data-g="ctype" data-v="cunning" onclick="pick(this)"><span class="oi">🦊</span><span class="on">狡詐謀略型</span><span class="od">每句話都是陷阱</span></button>
+      <button class="ob" data-g="ctype" data-v="gentle" onclick="pick(this)"><span class="oi">🌸</span><span class="on">溫柔體貼型</span><span class="od">好說話、偶有崩潰</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">💕 關係發展方向</div>
+    <div class="g3">
+      <button class="ob sel" data-g="rel" data-v="neutral" onclick="pick(this)"><span class="oi">🤝</span><span class="on">合作夥伴</span><span class="od">互利共存</span></button>
+      <button class="ob" data-g="rel" data-v="romance" onclick="pick(this)"><span class="oi">💘</span><span class="on">戀愛路線</span><span class="od">感情逐漸升溫</span></button>
+      <button class="ob" data-g="rel" data-v="rival" onclick="pick(this)"><span class="oi">⚔️</span><span class="on">競爭對手</span><span class="od">相愛相殺</span></button>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">📖 開始遊戲——與主角相遇</button>
+</div>
+
+<!-- MAIN -->
+<div id="s-main" class="screen">
+  <div id="install-banner" class="install-banner" style="display:none">
+    <span>📱 加入主畫面，像 App 一樣玩！</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="installApp()">安裝</button>
+      <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+    </div>
+  </div>
+
+  <div class="ghdr">
+    <div class="gtitle" id="g-btitle">書名</div>
+    <div style="display:flex;align-items:center">
+      <span class="save-dot" id="save-dot"></span>
+      <div class="day-tag" id="d-day">第 1 天</div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="hc"><div class="hl">💰 存款</div><div class="hv hv-g" id="h-money">3,200</div></div>
+    <div class="hc"><div class="hl">🤝 信任</div><div class="hv hv-j" id="h-trust">50</div></div>
+    <div class="hc"><div class="hl">✨ 異能</div><div class="hv hv-c" id="h-power">10</div></div>
+    <div class="hc"><div class="hl">📣 人氣</div><div class="hv hv-l" id="h-fame">120</div></div>
+  </div>
+
+  <div class="pb-w">
+    <div class="pb-r"><span>主角脫離進度</span><span id="p-et">0%</span></div>
+    <div class="pb-t"><div class="pb-f pf-g" id="p-ef" style="width:0%"></div></div>
+  </div>
+  <div class="pb-w">
+    <div class="pb-r"><span>今日寫作</span><span id="p-wt">0 / 2000 字</span></div>
+    <div class="pb-t"><div class="pb-f pf-j" id="p-wf" style="width:0%"></div></div>
+  </div>
+  <div class="em-badge em-calm" id="em-badge">😐 心情：平靜</div>
+
+  <div class="tabs">
+    <button class="tb on" onclick="tab('chat')">💬 對話</button>
+    <button class="tb" onclick="tab('write')">✍️ 寫作</button>
+    <button class="tb" onclick="tab('quest')">📜 任務</button>
+    <button class="tb" onclick="tab('events')">📋 事件</button>
+    <button class="tb" onclick="tab('love')">💕 關係</button>
+    <button class="tb" onclick="tab('power')">✨ 異能</button>
+    <button class="tb" onclick="tab('shop')">🛒 商店</button>
+    <button class="tb" onclick="tab('lb')">🏆 排行</button>
+    <button class="tb" onclick="tab('ending')">🎭 結局</button>
+  </div>
+
+  <div id="p-chat" class="panel active">
+    <div class="ai-st"><div class="ai-dot" id="ai-dot"></div><span id="ai-st-txt">主角待機中</span></div>
+    <div class="chat-win" id="chat-win"></div>
+    <div class="choice-box" id="choice-box" style="display:none">
+      <div class="choice-hint">選擇你的回應：</div>
+      <div class="choice-list" id="choice-list"></div>
+    </div>
+    <div class="chips" id="q-chips"></div>
+    <div class="chat-row">
+      <textarea id="chat-in" rows="1" placeholder="直接輸入對話，或點選上方選項…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFreeChat()}"></textarea>
+      <button class="send-btn" onclick="sendFreeChat()">送出</button>
+    </div>
+  </div>
+
+  <div id="p-write" class="panel">
+    <div class="wcard">
+      <h3 id="w-title">📖 繼續更新</h3>
+      <div class="req-pill" id="w-req">⚠️ 主角要求：不要寫失憶橋段</div>
+      <textarea id="w-input" placeholder="開始寫作……遵從主角要求 → 信任+2　無視 → 信任-5 人氣+15"></textarea>
+      <div class="wc-row" id="w-wc">0 字</div>
+      <div class="btn-row">
+        <button class="bp" onclick="submitWrite()">發布更新 ✓</button>
+        <button class="bs" onclick="randPlot()">🎲 隨機情節</button>
+        <button class="bs" onclick="useAbility()">⚡ 文字成真</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-quest" class="panel">
+    <div class="sec-hd">主線任務</div><div id="mq-list"></div>
+    <div class="sec-hd">支線任務</div><div id="sq-list"></div>
+  </div>
+
+  <div id="p-events" class="panel"><div id="ev-list"></div></div>
+
+  <div id="p-love" class="panel">
+    <div class="card">
+      <div class="card-h">💕 與 <span id="love-cn">主角</span> 的關係</div>
+      <div class="pb-r"><span>好感度</span><span id="love-val">0 / 100</span></div>
+      <div class="pb-t"><div class="pb-f pf-r" id="love-bar" style="width:0%"></div></div>
+      <div class="lstages" id="lstages">
+        <div class="ls on" id="ls-0">陌生人</div><div class="ls" id="ls-1">普通</div>
+        <div class="ls" id="ls-2">朋友</div><div class="ls" id="ls-3">知己</div>
+        <div class="ls" id="ls-4">特別</div><div class="ls" id="ls-5">深愛</div>
+      </div>
+      <div id="love-unlock"></div>
+    </div>
+    <div class="card"><div class="card-h">💌 好感事件</div><div id="lev-list"></div></div>
+    <div class="card"><div class="card-h">🗒️ 記憶日誌</div><div id="mem-log"></div></div>
+  </div>
+
+  <div id="p-power" class="panel"><div class="pw-grid" id="pw-grid"></div></div>
+
+  <div id="p-shop" class="panel">
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:.6rem">購物解決日常困境，維持你和主角的生活品質</p>
+    <div class="sh-grid" id="sh-grid"></div>
+  </div>
+
+  <div id="p-lb" class="panel">
+    <div class="sec-hd">🏆 脫離進度排行</div><div id="lb-list"></div>
+    <div class="sec-hd">⚔️ 副本挑戰</div>
+    <div class="ecard"><div class="eicon">⚔️</div><div><div class="etitle">書中世界·試練之境</div><div class="edesc">與書中強敵共同作戰，需要3位作者組隊。（多人功能開發中）</div><div class="eacts"><button class="ebtn" onclick="toast('⚔️ 組隊中，敬請期待！','')">加入</button></div></div></div>
+    <div class="ecard"><div class="eicon">📣</div><div><div class="etitle">稿費爭奪戰</div><div class="edesc">比拼本周更新量，前三名獲豐厚稿費。</div><div class="eacts"><button class="ebtn" onclick="toast('📣 報名成功！','')">報名</button></div></div></div>
+  </div>
+
+  <div id="p-ending" class="panel">
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:.6rem">根據你的選擇，共有 5 種不同結局。完成條件後即可解鎖觀看。</p>
+    <div class="ed-grid" id="ed-grid"></div>
+  </div>
+</div>
+
+<div class="modal-ov" id="modal">
+  <div class="modal-box">
+    <span class="modal-em" id="m-em">🎉</span>
+    <div class="modal-tit" id="m-tit">結局</div>
+    <div class="modal-body" id="m-body"></div>
+    <button class="modal-cl" onclick="closeModal()">繼續遊戲</button>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var SK='novel_v3';
+var G=load()||def();
+function def(){return{day:1,money:3200,trust:50,power:10,fame:120,escape:0,wordsToday:0,wordsGoal:2000,love:0,totalWords:0,chatCount:0,authorName:'',bookTitle:'',charName:'',charType:'hero',genre:'xianxia',relType:'neutral',charEmoji:'⚡',emotion:'calm',chatHistory:[],memories:[],activeEvents:[],resolvedEvents:[],quests:buildQ(),abilities:[
+  {id:'realify',name:'文字成真',desc:'讓你寫的東西短暫出現在現實中',level:1,max:5,color:'#c07d1a',unlocked:true},
+  {id:'empathy',name:'共情感知',desc:'感知主角情緒，更容易預判需求',level:0,max:3,color:'#1e7a52',unlocked:false,unlockAt:30},
+  {id:'timewarp',name:'時間碎片',desc:'暫停書中時間，爭取現實時機',level:0,max:3,color:'#952820',unlocked:false,unlockAt:60},
+  {id:'worldlink',name:'雙界連接',desc:'同時感知兩個世界的動態',level:0,max:5,color:'#5a52a8',unlocked:false,unlockAt:100},
+  {id:'charmsong',name:'魅惑音律',desc:'讓主角心情改善，好感提升',level:0,max:3,color:'#a33060',unlocked:false,unlockAt:50}
+],picks:{genre:'xianxia',ctype:'hero',rel:'neutral'},plotIdx:0,dialogueNode:0,_confDone:false,started:false}}
+function buildQ(){return{main:[
+  {id:'mq1',title:'第一次相遇',desc:'完成與主角的首次對話',goal:1,prog:0,reward:'NT$500 + 信任+10',done:false,claimed:false,type:'chat'},
+  {id:'mq2',title:'第一章更新',desc:'完成今日寫作目標（2000字）',goal:2000,prog:0,reward:'NT$800 + 人氣+50',done:false,claimed:false,type:'words'},
+  {id:'mq3',title:'信任的建立',desc:'讓主角信任度達到70',goal:70,prog:0,reward:'異能值+30 + 脫離+10%',done:false,claimed:false,type:'trust'},
+  {id:'mq4',title:'靈氣初覺醒',desc:'解鎖第二個異能',goal:1,prog:0,reward:'NT$1,200',done:false,claimed:false,type:'ability'},
+  {id:'mq5',title:'堅持到第十天',desc:'撐過第10天',goal:10,prog:0,reward:'脫離+20% + 好感+15',done:false,claimed:false,type:'day'},
+  {id:'mq6',title:'通往自由之路',desc:'讓主角脫離進度達到100%',goal:100,prog:0,reward:'🎉 通關——解鎖結局',done:false,claimed:false,type:'escape'}
+],side:[
+  {id:'sq1',title:'填飽肚子先',desc:'解決食物短缺問題',goal:1,prog:0,reward:'好感+5',done:false,claimed:false,type:'ev_food'},
+  {id:'sq2',title:'一次五百字',desc:'單次寫作超過500字',goal:500,prog:0,reward:'NT$600 + 人氣+30',done:false,claimed:false,type:'single_write'},
+  {id:'sq3',title:'贏得讀者心',desc:'人氣達到500',goal:500,prog:0,reward:'NT$1,000',done:false,claimed:false,type:'fame'},
+  {id:'sq4',title:'深夜的談心',desc:'與主角對話累計10次',goal:10,prog:0,reward:'好感+10 + 信任+5',done:false,claimed:false,type:'chat_c'},
+  {id:'sq5',title:'心意相通',desc:'好感達到50',goal:50,prog:0,reward:'特殊對話 + 異能值+20',done:false,claimed:false,type:'love'},
+  {id:'sq6',title:'異能大師',desc:'任意異能升到Lv.3',goal:3,prog:0,reward:'NT$800 + 脫離+5%',done:false,claimed:false,type:'ability_lv'}
+]}}
+function save(){try{var d=Object.assign({},G);d.isLoading=false;localStorage.setItem(SK,JSON.stringify(d));var s=document.getElementById('save-dot');if(s){s.classList.add('show');setTimeout(function(){s.classList.remove('show')},1500)}}catch(e){}}
+function load(){try{var r=localStorage.getItem(SK);if(!r)return null;var d=JSON.parse(r);if(!d.quests)d.quests=buildQ();if(!d.memories)d.memories=[];if(!d.totalWords)d.totalWords=0;if(!d.chatCount)d.chatCount=0;if(!d.emotion)d.emotion='calm';if(!d.dialogueNode)d.dialogueNode=0;return d}catch(e){return null}}
+setInterval(save,25000);
+
+var EMOJIS={hero:'⚡',cool:'❄️',cunning:'🦊',gentle:'🌸'};
+var EMOTIONS={calm:{label:'平靜',icon:'😐',cls:'em-calm'},happy:{label:'開心',icon:'😊',cls:'em-happy'},angry:{label:'生氣',icon:'😠',cls:'em-angry'},sad:{label:'難過',icon:'😔',cls:'em-sad'},curious:{label:'好奇',icon:'🤔',cls:'em-curious'},tsundere:{label:'傲嬌',icon:'😤',cls:'em-tsundere'}};
+var DT={hero:[
+  {id:0,text:'（猛地抬頭）你！你就是一直操控我命運的人？！每次我快贏了，你就給我弄個絕境！',choices:[{text:'「我……我也不知道你怎麼跑出來的，但我們可以談談。」',eff:{trust:5},next:1,effDesc:'+5 信任',effType:'pos'},{text:'「這不可能！你只是書中角色！」',eff:{trust:-8,power:3},next:1,effDesc:'-8 信任 +3 異能',effType:'neg'},{text:'先讓他冷靜，倒一杯水給他。',eff:{trust:8,money:-15},next:1,effDesc:'+8 信任 -NT$15',effType:'pos'}]},
+  {id:1,text:'（稍微冷靜下來）……謝謝。我在書裡活了那麼久，什麼苦難都受過了。現在我只想要一件事——真正活在這個世界上。你，能幫我嗎？',choices:[{text:'「我可以試試，但這對我來說也不容易。」',eff:{trust:5},next:2,effDesc:'+5 信任',effType:'pos'},{text:'「你先在這裡住下，我需要時間研究。」',eff:{trust:3,money:-200},next:2,effDesc:'+3 信任 -NT$200',effType:'mix'},{text:'「那你能幫我完成今天的稿子嗎？」',eff:{money:300},next:2,effDesc:'+NT$300',effType:'mix'}]},
+  {id:2,text:'「好，那我們說清楚規則。第一：不准寫讓我死的橋段。第二：不要讓我遇上那個第三部的女主。第三……我餓了，你家有東西吃嗎？」',choices:[{text:'翻出冰箱裡僅剩的泡麵……「就這些了。」',eff:{trust:3,money:-5},next:3,effDesc:'+3 信任',effType:'pos'},{text:'「沒問題，我去叫外賣！」',eff:{trust:8,money:-85},next:3,effDesc:'+8 信任 -NT$85',effType:'pos'},{text:'「死亡劇情……我需要考慮一下。」',eff:{trust:-5},next:3,effDesc:'-5 信任',effType:'neg'}]},
+  {id:3,text:'（吃著東西，若有所思）對了，我在書裡的那些能力，來了現實世界還在嗎？（打了個響指，空氣輕輕漣漪）……看來是的。你呢？你有沒有什麼異能？',choices:[{text:'「好像有一點，還在摸索中。」',eff:{trust:3,power:5},next:4,effDesc:'+3 信任 +5 異能',effType:'pos'},{text:'展示文字成真——讓桌上出現一個蘋果',eff:{trust:10,power:-5},next:4,effDesc:'+10 信任 -5 異能',effType:'pos'},{text:'「什麼異能？我只是普通作者。」',eff:{trust:-3},next:4,effDesc:'-3 信任',effType:'neg'}]},
+  {id:4,text:'（放下碗，看著你）那我們就這樣說定了。你幫我脫離書中世界，我暫時住在這裡配合你。不過，你最好別讓我失望。',choices:[{text:'「放心，我一定盡力。」',eff:{trust:5,escape:5},next:5,effDesc:'+5 信任 脫離+5%',effType:'pos'},{text:'「我需要你也幫忙——幫我想劇情。」',eff:{trust:2,fame:10},next:5,effDesc:'+2 信任 +10 人氣',effType:'mix'},{text:'（沉默，只是點點頭）',eff:{},next:5,effDesc:'保持距離',effType:'mix'}]},
+  {id:5,text:'（望向窗外，聲音低下來）……現實世界比我想像的複雜很多。書裡再怎麼難，我都知道下一頁是什麼。但這裡……我不知道。',choices:[{text:'「這就是真正活著的感覺。」',eff:{trust:5,love:3},next:0,effDesc:'+5 信任 +3 好感',effType:'pos'},{text:'「我也不知道下一頁是什麼……我們一起摸索吧。」',eff:{trust:3,love:5},next:0,effDesc:'+3 信任 +5 好感',effType:'pos'},{text:'遞給他一杯熱茶，什麼都不說',eff:{love:7},next:0,effDesc:'+7 好感',effType:'pos'}]}
+],cool:[
+  {id:0,text:'……（冷冷掃視房間，目光最後落在你身上）終於見到你了，作者。比我想像中……普通一點。',choices:[{text:'「你比我想像的……更難相處。」',eff:{trust:3},next:1,effDesc:'+3 信任',effType:'pos'},{text:'「抱歉讓你失望了。你需要什麼？」',eff:{trust:5},next:1,effDesc:'+5 信任',effType:'pos'},{text:'（沉默，回望他）',eff:{love:2},next:1,effDesc:'+2 好感',effType:'pos'}]},
+  {id:1,text:'既然出來了，有些事得說清楚。（轉過身）你寫的那些苦難情節——我每一個都記得。現在，輪到你還債了。',choices:[{text:'「我理解。我會盡力彌補的。」',eff:{trust:5},next:2,effDesc:'+5 信任',effType:'pos'},{text:'「那些情節是必要的劇情發展。」',eff:{trust:-3,power:3},next:2,effDesc:'-3 信任 +3 異能',effType:'neg'},{text:'「……你說的是哪一章？」',eff:{trust:-5},next:2,effDesc:'-5 信任',effType:'neg'}]},
+  {id:2,text:'我的要求很簡單。第一，不要讓那個死對頭再出現。第二，別再讓我失憶。第三……（停頓）給我一些空間。',choices:[{text:'「好，這些我都答應你。」',eff:{trust:8},next:3,effDesc:'+8 信任',effType:'pos'},{text:'「第三條……是指物理距離，還是……」',eff:{trust:2,love:3},next:3,effDesc:'+2 信任 +3 好感',effType:'mix'},{text:'「失憶橋段其實讀者很喜歡……」',eff:{trust:-8},next:3,effDesc:'-8 信任',effType:'neg'}]},
+  {id:3,text:'（終於轉身看你）……你也有靈氣異能？（打量你一眼）程度很低。不過……有比沒有好。',choices:[{text:'「你對我的評價就這樣？」（苦笑）',eff:{trust:3,love:2},next:4,effDesc:'+3 信任 +2 好感',effType:'pos'},{text:'「那你能教我提升嗎？」',eff:{trust:5,power:5},next:4,effDesc:'+5 信任 +5 異能',effType:'pos'},{text:'（不甘示弱地展示異能）',eff:{trust:3,power:-5},next:4,effDesc:'+3 信任 -5 異能',effType:'mix'}]},
+  {id:4,text:'……（罕見地沉默了很久）脫離書中世界之後，我會是什麼？不再是主角，不再有讀者……只是一個活著的人嗎？',choices:[{text:'「只是一個活著的人，不也很好嗎？」',eff:{trust:5,love:5},next:5,effDesc:'+5 信任 +5 好感',effType:'pos'},{text:'（沉默，把手放在他肩上）',eff:{love:8},next:5,effDesc:'+8 好感',effType:'pos'},{text:'「你永遠都會是主角。」',eff:{trust:3,love:7},next:5,effDesc:'+3 信任 +7 好感',effType:'pos'}]},
+  {id:5,text:'（背過臉，耳根微微泛紅）……謝謝你告訴我。今晚……你需要我幫你想劇情嗎？才不是想陪你，只是無聊。',choices:[{text:'「好啊，我正好需要靈感。」',eff:{trust:5,love:3,fame:15},next:0,effDesc:'+5 信任 +3 好感 +15 人氣',effType:'pos'},{text:'（忍住笑）「那就麻煩你了。」',eff:{love:8},next:0,effDesc:'+8 好感',effType:'pos'},{text:'「傲嬌起來還挺可愛的。」',eff:{trust:2,love:6},next:0,effDesc:'+2 信任 +6 好感',effType:'pos'}]}
+],cunning:[
+  {id:0,text:'喲，這就是傳說中控制我命運的人啊。（慢悠悠打量你）比想像中好說話的樣子。不過，你別以為我不知道你的小心思。',choices:[{text:'「我不知道你指的是什麼。」',eff:{trust:2},next:1,effDesc:'+2 信任',effType:'pos'},{text:'「好吧，我們直說——你想要什麼？」',eff:{trust:5},next:1,effDesc:'+5 信任',effType:'pos'},{text:'「你的心思也不難猜。」',eff:{trust:3,love:2},next:1,effDesc:'+3 信任 +2 好感',effType:'pos'}]},
+  {id:1,text:'（笑得意味深長）我要的東西很簡單——自由。但自由是有代價的，不是嗎？你能給我什麼？',choices:[{text:'「我可以讓你脫離書中世界。」',eff:{trust:5,escape:3},next:2,effDesc:'+5 信任 脫離+3%',effType:'pos'},{text:'「問題是你能給我什麼？」',eff:{trust:3,money:200},next:2,effDesc:'+3 信任 +NT$200',effType:'mix'},{text:'「……我得思考一下。」',eff:{trust:1},next:2,effDesc:'+1 信任',effType:'mix'}]},
+  {id:2,text:'（似笑非笑）有趣。那我就先信你一次——但只有一次。你的書目前幾個讀者？用數字說話。',choices:[{text:'「一百多人。但會增加的。」',eff:{trust:3},next:3,effDesc:'+3 信任',effType:'pos'},{text:'「只要你配合我，讀者會暴增的。」',eff:{trust:5,fame:20},next:3,effDesc:'+5 信任 +20 人氣',effType:'pos'},{text:'（說了個誇大的數字）',eff:{trust:-3,money:100},next:3,effDesc:'-3 信任 +NT$100',effType:'neg'}]},
+  {id:3,text:'（手指輕扣桌面）你有靈氣異能，我也有。如果我們合作，會是什麼樣的結果？你算過嗎？',choices:[{text:'「我算過——雙贏。」',eff:{trust:5,escape:5},next:4,effDesc:'+5 信任 脫離+5%',effType:'pos'},{text:'「你想怎麼合作？說清楚。」',eff:{trust:3},next:4,effDesc:'+3 信任',effType:'pos'},{text:'（反問）「你又算過了什麼？」',eff:{trust:4,love:2},next:4,effDesc:'+4 信任 +2 好感',effType:'pos'}]},
+  {id:4,text:'（少見地收起了笑容）……有一件事我從未在書裡說過。我也怕。怕脫離了書中世界，就什麼都沒了。',choices:[{text:'「那我保證——脫離之後，你還有我。」',eff:{trust:8,love:8},next:5,effDesc:'+8 信任 +8 好感',effType:'pos'},{text:'「我明白這種恐懼。」',eff:{trust:6,love:5},next:5,effDesc:'+6 信任 +5 好感',effType:'pos'},{text:'「你不是從來都不怕嗎？」',eff:{trust:3,love:6},next:5,effDesc:'+3 信任 +6 好感',effType:'pos'}]},
+  {id:5,text:'（恢復了平時的表情，但眼神不同了）……謝謝你說的話。好了，今天的劇情你想怎麼走？我有幾個想法。',choices:[{text:'「說來聽聽。」',eff:{trust:5,fame:10},next:0,effDesc:'+5 信任 +10 人氣',effType:'pos'},{text:'「你幫我想，我來寫。各司其職。」',eff:{trust:3,money:150},next:0,effDesc:'+3 信任 +NT$150',effType:'mix'},{text:'「你說的我都採納，但署名還是我的。」',eff:{trust:2,love:4},next:0,effDesc:'+2 信任 +4 好感',effType:'mix'}]}
+],gentle:[
+  {id:0,text:'啊……（輕輕眨眼）你好，作者。我是……其實，我早就想見你了。書裡有很多事情，我一直想親口問你……你不介意嗎？',choices:[{text:'「當然不介意，你說吧。」',eff:{trust:5,love:3},next:1,effDesc:'+5 信任 +3 好感',effType:'pos'},{text:'「……你比我想像的更溫柔。」',eff:{trust:3,love:5},next:1,effDesc:'+3 信任 +5 好感',effType:'pos'},{text:'「你想問什麼都可以。」',eff:{trust:4,love:4},next:1,effDesc:'+4 信任 +4 好感',effType:'pos'}]},
+  {id:1,text:'（輕輕低下頭）……你在書裡寫的那些苦難——我知道那是故事需要。但有幾個場景，讓我很難受。你，知道嗎？',choices:[{text:'「我知道……我很抱歉。」',eff:{trust:8,love:5},next:2,effDesc:'+8 信任 +5 好感',effType:'pos'},{text:'「告訴我哪個場景最難受，我來改。」',eff:{trust:6,love:3},next:2,effDesc:'+6 信任 +3 好感',effType:'pos'},{text:'「那些都是讓你成長的必要過程……」',eff:{trust:-2,love:-2},next:2,effDesc:'-2 信任 -2 好感',effType:'neg'}]},
+  {id:2,text:'（抬起頭，眼裡有光）謝謝你願意聽我說。那我的要求很簡單——不要讓我的朋友們出事。我在書裡的那些夥伴……他們很重要。',choices:[{text:'「我保證他們都會好好的。」',eff:{trust:8,love:3},next:3,effDesc:'+8 信任 +3 好感',effType:'pos'},{text:'「我盡力，但故事有時候需要衝突……」',eff:{trust:4},next:3,effDesc:'+4 信任',effType:'mix'},{text:'（在便條紙上記下「夥伴安全」）',eff:{trust:6,love:2},next:3,effDesc:'+6 信任 +2 好感',effType:'pos'}]},
+  {id:3,text:'（環顧你的房間）你一個人住？我來了之後，你的生活變得更麻煩了吧？……對不起，給你添麻煩了。',choices:[{text:'「不麻煩。有人在，反而比較不孤單。」',eff:{love:8,trust:3},next:4,effDesc:'+8 好感 +3 信任',effType:'pos'},{text:'「是有一點麻煩，但也還好。」',eff:{trust:5,love:2},next:4,effDesc:'+5 信任 +2 好感',effType:'pos'},{text:'「……我也一個人太久了。」',eff:{love:10},next:4,effDesc:'+10 好感',effType:'pos'}]},
+  {id:4,text:'（長時間沉默後，輕聲）……如果我最後能脫離書中世界，我想做一件事。我想去看真正的日落。書裡的日落是你寫的，但現實的日落，我從來沒看過。',choices:[{text:'「好，那一天我陪你去看。」',eff:{love:10,trust:5},next:5,effDesc:'+10 好感 +5 信任',effType:'pos'},{text:'（低頭，輕輕點頭）「說定了。」',eff:{love:8,trust:3},next:5,effDesc:'+8 好感 +3 信任',effType:'pos'},{text:'「只要你好好配合，一定可以的。」',eff:{love:5,trust:4,escape:5},next:5,effDesc:'+5 好感 +4 信任 脫離+5%',effType:'pos'}]},
+  {id:5,text:'（看著你忙碌的背影，輕聲說）……你寫作的時候，臉上的表情很認真。（停頓）我喜歡看。',choices:[{text:'（裝作沒聽到，但耳朵紅了）',eff:{love:8},next:0,effDesc:'+8 好感',effType:'pos'},{text:'「那你要繼續看著我，我去寫稿了。」',eff:{love:6},next:0,effDesc:'+6 好感',effType:'pos'},{text:'「謝謝你……你看我的眼神讓我安心。」',eff:{love:10,trust:3},next:0,effDesc:'+10 好感 +3 信任',effType:'pos'}]}
+]};
+var CL={calm:{hero:['（抬頭）你的書今天有多少人看了？','……我在想，脫離後，書裡的記憶還在嗎？','你餓不餓？（停頓）我也有點餓。'],cool:['……（望向窗外）。','你在寫什麼？（背對你，但在聽）','今天的天氣……還不錯。（罕見地說）'],cunning:['（敲著桌子）你今天的計畫是什麼？','有件事我想跟你談一談……','你的讀者最近是不是增加了？'],gentle:['你今天辛苦了。需要休息一下嗎？','我看了你昨天寫的章節……寫得很好。','……你笑起來，和我想像的不一樣。']},happy:{hero:['（難得展開笑顏）今天的外賣不錯！','你的粉絲又增加了？……才不是替你高興。'],cool:['（嘴角微揚，幅度很小）……還行吧。','今天的心情……不算太差。'],cunning:['（少見地放鬆）今天效率不錯。','……你今天的狀態挺好的。'],gentle:['（輕輕笑）你今天看起來很有精神！','……我很開心，謝謝你告訴我這些。']},angry:{hero:['（砰地放下東西）你上次答應我的事還沒做到！','書裡那個劇情你確定不改？！'],cool:['（冷冷）你最好解釋一下。','……（沉默，但明顯在憋著什麼）'],cunning:['我記性很好，上次的事我都記著。','……你覺得我不知道嗎？'],gentle:['（聲音很輕，但帶著委屈）……你說的話，讓我很難受。','……沒關係，我會沒事的。（顯然不是）']},sad:{hero:['（靠著窗，沉默很久）……書裡的人有沒有真正的靈魂？','如果我沒辦法脫離呢？……只是假設。'],cool:['……（沉默地坐著）','今天……不太想說話。'],cunning:['（少見地沒有笑）……你有沒有想過失敗的可能？'],gentle:['（眼眶輕微泛紅）……沒事，我只是想起了書裡的某個場景。','……你說，真正的自由是什麼樣的？']}};
+var PLOTS=['就在他以為一切已成定局時，天際突然出現了詭異的裂縫……','多年前被封印的記憶，在這一刻如潮水般湧回……','她轉身離去，卻在最後一刻停下了腳步，輕聲說了句……','敵人使出了連書中都未曾出現的禁忌術法……','一個陌生信封出現在他的枕邊，上面只寫著：你好嗎？'];
+var LORE=[{name:'初次眼神交換',at:10,done:false,desc:'你們第一次正視彼此'},{name:'一起吃飯',at:25,done:false,desc:'主角嘗了你做的菜，沉默片刻說「…不難吃」'},{name:'深夜傾訴',at:40,done:false,desc:'凌晨三點，他說了書中從未說出口的話'},{name:'手指碰觸',at:55,done:false,desc:'他幫你撿起掉落的筆，指尖相觸'},{name:'表白臨界',at:75,done:false,desc:'他說：「如果我不是書中角色就好了……」'},{name:'超越次元的羈絆',at:95,done:false,desc:'無論哪個世界，他選擇了你'}];
+var ENDINGS=[{id:'e1',icon:'🌅',title:'自由之光',cond:'信任≥80，好感≥60，脫離100%',fn:function(){return G.trust>=80&&G.love>=60&&G.escape>=100},story:'你終於完成了一切準備。那個清晨，隨著最後一章定稿，書中世界與現實的邊界緩緩消融。他站在窗邊，看著升起的太陽，輕輕說了聲謝謝——然後，成為了真正活在這個世界的人。'},{id:'e2',icon:'💕',title:'書外的羈絆',cond:'戀愛路線，好感≥90，脫離100%',fn:function(){return G.relType==='romance'&&G.love>=90&&G.escape>=100},story:'脫離儀式完成的那一刻，他沒有離開。「就算真正自由了，」他說，「我也不想去別的地方。」你們的故事，從書中延伸到了現實。'},{id:'e3',icon:'⚔️',title:'雙界守護者',cond:'異能值≥200，脫離100%，完成全主線',fn:function(){return G.power>=200&&G.escape>=100&&G.quests.main.every(function(q){return q.done})},story:'你的異能早已超越普通作者的極限。他脫離書中世界後，你們選擇成為守護兩個世界的使者，共同對抗試圖打破平衡的力量。'},{id:'e4',icon:'📚',title:'永恆的故事',cond:'人氣≥1000，總字數≥10000，脫離100%',fn:function(){return G.fame>=1000&&G.totalWords>=10000&&G.escape>=100},story:'你的書紅遍了網路，成為了傳說。而他——那個從書中跑出來的主角，選擇成為你最忠實的讀者和見證者。你繼續寫，他繼續活著。'},{id:'e5',icon:'🔮',title:'未竟之路',cond:'第20天仍未脫離100%',fn:function(){return G.day>=20&&G.escape<100},story:'二十天過去了，主角仍未能完全脫離書中世界的束縛。但他說：「也許，這樣就夠了。」每天在這裡，看你寫作、看日出、吃泡麵——他說這也是一種自由。'}];
+var LB_NPC=[{name:'星光執筆',char:'雲小雪',esc:42,online:true,emoji:'🌟'},{name:'夜雨寫書人',char:'蕭天磊',esc:28,online:true,emoji:'🌙'},{name:'卿本書狂',char:'柔柔',esc:67,online:false,emoji:'🎀'},{name:'異能小說家',char:'戰神大人',esc:15,online:true,emoji:'⚡'},{name:'書海無涯',char:'暗夜君',esc:55,online:false,emoji:'🌊'}];
+var EP=[{id:'no-food',icon:'🍽️',title:'冰箱空了！',desc:'你和主角都餓著，便利商店的泡麵只能救急，但總得買點真食材。',badge:'bu',act:'去買食材',fn:'shop-food',day:1},{id:'landlord',icon:'🏠',title:'房東催繳房租',desc:'月底到了，房租需要NT$20,000。稿費還沒到帳，房東開始催了。',badge:'bu',act:'籌錢繳租',fn:'landlord',day:1},{id:'no-gas',icon:'🔥',title:'瓦斯斷了',desc:'主角想洗澡，但瓦斯欠費停供了。他看你的眼神充滿不可置信。',badge:'bu',act:'前往商店補繳',fn:'shop',day:2},{id:'reader-angry',icon:'📣',title:'讀者暴動催更',desc:'你已五天沒更新，讀者在評論區罵翻，主角在旁幸災樂禍。',badge:'bi',act:'立刻去寫作',fn:'write',day:3},{id:'no-net',icon:'🌐',title:'網路費到期',desc:'網路斷了，無法上傳章節。主角以為你在故意罷工。',badge:'bu',act:'前往商店補繳',fn:'shop',day:3},{id:'char-req',icon:'📝',title:'主角來提條件',desc:'他說有個章節劇情讓他很不爽，要求你修改，否則拒絕配合脫離計畫。',badge:'bi',act:'去和他聊聊',fn:'chat',day:4},{id:'awaken',icon:'✨',title:'新異能覺醒！',desc:'與主角相處後，「共情感知」異能開始覺醒，能隱約感受書中世界動態。',badge:'bi',act:'嘗試感知',fn:'awaken',day:5},{id:'headache',icon:'🤕',title:'異能過度使用',desc:'你最近異能用太頻繁，頭痛欲裂，連筆都拿不穩。',badge:'bu',act:'前往商店買藥',fn:'shop',day:5},{id:'love-ev',icon:'💕',title:'主角說了聲謝謝',desc:'他罕見地低頭說了聲謝謝，耳根微微泛紅。你心跳不自覺漏了一拍。',badge:'bi',act:'好好回應他',fn:'chat',day:6},{id:'nightmare',icon:'😱',title:'主角做了噩夢',desc:'凌晨三點，他跑來敲你房間的門。「書裡的死亡場景……是真的嗎？」',badge:'bi',act:'安慰他',fn:'comfort',day:8},{id:'fan-letter',icon:'📬',title:'粉絲來信',desc:'一位讀者說這本書改變了她的生活。主角偷偷把這封信讀了好幾遍。',badge:'bi',act:'一起看信',fn:'love-up',day:9}];
+
+function pick(b){var g=b.dataset.g;b.parentElement.querySelectorAll('.ob[data-g="'+g+'"]').forEach(function(x){x.classList.remove('sel')});b.classList.add('sel');G.picks[g]=b.dataset.v}
+function startGame(){
+  G.authorName=document.getElementById('i-author').value.trim()||'無名先生';
+  G.bookTitle=document.getElementById('i-book').value.trim()||'《無名之書》';
+  G.charName=document.getElementById('i-char').value.trim()||'李慕白';
+  G.charType=G.picks.ctype;G.genre=G.picks.genre;G.relType=G.picks.rel;G.charEmoji=EMOJIS[G.charType];
+  if(!G.activeEvents||!G.activeEvents.length)G.activeEvents=EP.filter(function(e){return e.day<=3}).map(function(e){return Object.assign({},e,{res:false})});
+  G.started=true;
+  document.getElementById('s-setup').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  document.getElementById('g-btitle').textContent=G.bookTitle;
+  document.getElementById('w-title').textContent='📖 繼續更新——'+G.bookTitle;
+  document.getElementById('w-req').textContent='⚠️ '+G.charName+'的要求：不要寫失憶橋段';
+  document.getElementById('love-cn').textContent=G.charName;
+  renderAll();showDNode(G.dialogueNode);scheduleChar();save();
+  showInstallBanner();
+}
+function renderAll(){renderPW();renderShop();renderLB();renderLovePanel();renderEvs();renderQ();renderEnds();updateHUD();updateEmo()}
+function showInstallBanner(){
+  if(window.matchMedia('(display-mode: standalone)').matches)return;
+  if(localStorage.getItem('install_dismissed'))return;
+  var deferredPrompt=window._deferredPrompt;
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(deferredPrompt||isIOS){
+    var b=document.getElementById('install-banner');
+    if(b)b.style.display='flex';
+  }
+}
+var _deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();_deferredPrompt=e;window._deferredPrompt=e});
+function installApp(){
+  var b=document.getElementById('install-banner');
+  if(_deferredPrompt){_deferredPrompt.prompt();_deferredPrompt.userChoice.then(function(){_deferredPrompt=null;if(b)b.style.display='none';localStorage.setItem('install_dismissed','1')})}
+  else{toast('📱 請點瀏覽器選單中的「加入主畫面」','jade');if(b)b.style.display='none';localStorage.setItem('install_dismissed','1')}
+}
+
+function getCT(){return DT[G.charType]||DT.hero}
+function showDNode(i){var t=getCT();var n=t[i%t.length];if(!n)return;addMsg('char',n.text);G.dialogueNode=i;renderChoices(n.choices)}
+function renderChoices(cs){
+  var box=document.getElementById('choice-box');var list=document.getElementById('choice-list');
+  if(!cs||!cs.length){box.style.display='none';return}
+  box.style.display='block';list.innerHTML='';
+  cs.forEach(function(c){
+    var b=document.createElement('button');b.className='choice-btn';
+    b.innerHTML=c.text+(c.effDesc?'<span class="c-eff '+(c.effType||'')+'">'+c.effDesc+'</span>':'');
+    b.onclick=(function(ch){return function(){applyC(ch)}})(c);list.appendChild(b);
+  });
+  renderChips();
+}
+function applyC(c){
+  document.getElementById('choice-box').style.display='none';addMsg('author',c.text);
+  if(c.eff){
+    if(c.eff.trust)G.trust=Math.max(0,Math.min(100,G.trust+c.eff.trust));
+    if(c.eff.love){G.love=Math.max(0,Math.min(100,G.love+c.eff.love));updLoveBar()}
+    if(c.eff.power)G.power=Math.max(0,Math.min(999,G.power+c.eff.power));
+    if(c.eff.money)G.money=Math.max(0,G.money+c.eff.money);
+    if(c.eff.fame)G.fame+=c.eff.fame;
+    if(c.eff.escape)G.escape=Math.min(100,G.escape+c.eff.escape);
+  }
+  G.chatCount++;updQ('chat',1);updQ('chat_c',1);updQ('mq1',1);checkEsc();updateHUD();
+  setTimeout(function(){var t=getCT();var nx=(c.next||0)%t.length;G.dialogueNode=nx;showDNode(nx);checkEsc();save()},600);
+}
+function sendFreeChat(){
+  var inp=document.getElementById('chat-in');var txt=inp.value.trim();if(!txt)return;
+  inp.value='';addMsg('author',txt);G.chatCount++;G.love=Math.min(100,G.love+1);
+  updQ('chat',1);updQ('chat_c',1);updQ('mq1',1);updateHUD();updLoveBar();
+  setTimeout(function(){
+    var em=G.emotion;var ct=G.charType;
+    var pool=(CL[em]&&CL[em][ct])||CL.calm[ct]||CL.calm.hero;
+    var reply=pool[Math.floor(Math.random()*pool.length)];
+    addMsg('char',reply);addMem(G.charName+'說：「'+reply.substring(0,25)+'…」');
+    detectEmo(txt+reply);checkLove();checkEsc();updateHUD();save();
+  },700);
+}
+function detectEmo(t){
+  if(/謝謝|感謝|開心|高興|太好了/.test(t))setEmo('happy');
+  else if(/生氣|討厭|煩|憤怒|算了/.test(t))setEmo('angry');
+  else if(/難過|傷心|失落|可惜/.test(t))setEmo('sad');
+  else if(/為什麼|怎麼|？|嗎|好奇/.test(t))setEmo('curious');
+  else if(/才不是|哼|笨|偏不/.test(t))setEmo('tsundere');
+  else if(Math.random()<0.3)setEmo('calm');
+}
+function setEmo(e){G.emotion=e;updateEmo()}
+function updateEmo(){var b=document.getElementById('em-badge');if(!b)return;var em=EMOTIONS[G.emotion]||EMOTIONS.calm;b.textContent=em.icon+' 心情：'+em.label;b.className='em-badge '+em.cls}
+function addMsg(role,text){
+  var now=new Date();var time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  G.chatHistory.push({role,text,time});if(G.chatHistory.length>80)G.chatHistory=G.chatHistory.slice(-80);
+  var cw=document.getElementById('chat-win');var div=document.createElement('div');div.className='msg'+(role==='author'?' me':'');
+  var avC=role==='char'?'av-c':'av-a';var emoji=role==='char'?G.charEmoji:'✍️';var bC=role==='char'?'b-c':'b-a';
+  div.innerHTML='<div class="av '+avC+'">'+emoji+'</div><div class="bub '+bC+'">'+esc(text)+'</div><div class="mtime">'+time+'</div>';
+  cw.appendChild(div);cw.scrollTop=cw.scrollHeight;
+}
+function renderChips(){
+  var el=document.getElementById('q-chips');el.innerHTML='';
+  ['你現在感覺怎麼樣？','對劇情有什麼要求嗎？','你餓了嗎？','你喜歡這個世界嗎？','關於脫離書中世界……'].forEach(function(q){var b=document.createElement('button');b.className='chip';b.textContent=q;b.onclick=function(){document.getElementById('chat-in').value=q;sendFreeChat()};el.appendChild(b)});
+}
+var _ct=null;
+function scheduleChar(){if(_ct)clearTimeout(_ct);_ct=setTimeout(function(){var ct=G.charType;var em=G.emotion;var pool=(CL[em]&&CL[em][ct])||CL.calm[ct]||CL.calm.hero;addMsg('char',pool[Math.floor(Math.random()*pool.length)]);scheduleChar()},90000+Math.random()*120000)}
+function checkLove(){if(G.love>=75&&G.relType==='romance'&&!G._confDone){G._confDone=true;setTimeout(function(){addMsg('char','……（沉默良久）如果我不是書中的角色就好了。我是說……（別開視線）沒什麼。');G.love=Math.min(100,G.love+5);updLoveBar()},1200)}}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var wi=document.getElementById('w-input');if(wi)wi.addEventListener('input',function(){document.getElementById('w-wc').textContent=this.value.replace(/\s/g,'').length+' 字'});
+  if(G.started){
+    document.getElementById('s-setup').classList.remove('active');
+    document.getElementById('s-main').classList.add('active');
+    document.getElementById('g-btitle').textContent=G.bookTitle;
+    document.getElementById('w-title').textContent='📖 繼續更新——'+G.bookTitle;
+    document.getElementById('w-req').textContent='⚠️ '+G.charName+'的要求：不要寫失憶橋段';
+    document.getElementById('love-cn').textContent=G.charName;
+    renderAll();
+    G.chatHistory.forEach(function(m){var cw=document.getElementById('chat-win');var div=document.createElement('div');div.className='msg'+(m.role==='author'?' me':'');var avC=m.role==='char'?'av-c':'av-a';var emoji=m.role==='char'?G.charEmoji:'✍️';var bC=m.role==='char'?'b-c':'b-a';div.innerHTML='<div class="av '+avC+'">'+emoji+'</div><div class="bub '+bC+'">'+esc(m.text)+'</div><div class="mtime">'+(m.time||'')+'</div>';cw.appendChild(div)});
+    var cw=document.getElementById('chat-win');if(cw)cw.scrollTop=cw.scrollHeight;
+    renderChips();scheduleChar();
+    if(!G.chatHistory.length)showDNode(G.dialogueNode||0);
+    else{var t=getCT();var n=t[G.dialogueNode%t.length];if(n)renderChoices(n.choices)}
+    showInstallBanner();
+  }
+});
+
+function submitWrite(){
+  var txt=document.getElementById('w-input').value;var wc=txt.replace(/\s/g,'').length;
+  if(wc<10){toast('請先寫點內容再發布…','');return}
+  var earned=Math.floor(wc*0.08*(1+G.fame/500));
+  G.money+=earned;G.wordsToday=Math.min(G.wordsGoal,G.wordsToday+wc);G.fame+=Math.floor(wc/100);G.trust=Math.min(100,G.trust+2);G.totalWords+=wc;
+  document.getElementById('w-input').value='';document.getElementById('w-wc').textContent='0 字';
+  toast('📣 發布！+NT$'+earned+' 稿費','jade');
+  updQ('mq2',wc);if(wc>=500){var sq=G.quests.side.find(function(q){return q.id==='sq2'});if(sq&&!sq.done){sq.prog=Math.min(sq.goal,wc);if(sq.prog>=sq.goal)sq.done=true}}
+  checkWG();checkEsc();updateHUD();save();
+}
+function randPlot(){var p=PLOTS[G.plotIdx%PLOTS.length];G.plotIdx++;document.getElementById('w-input').value=p;document.getElementById('w-wc').textContent=p.replace(/\s/g,'').length+' 字'}
+function useAbility(){if(G.power<10){toast('✨ 異能值不足','');return}G.power-=10;G.wordsToday=Math.min(G.wordsGoal,G.wordsToday+500);toast('✨ 文字成真！+500字','jade');checkWG();updateHUD()}
+function checkWG(){
+  if(G.wordsToday>=G.wordsGoal){
+    G.day++;G.wordsToday=0;G.power=Math.min(999,G.power+15);
+    document.getElementById('d-day').textContent='第 '+G.day+' 天';
+    toast('🌙 今日完成！第'+G.day+'天開始','jade');
+    EP.filter(function(e){return e.day===G.day&&!G.activeEvents.find(function(a){return a.id===e.id})&&!(G.resolvedEvents||[]).includes(e.id)}).forEach(function(e){G.activeEvents.push(Object.assign({},e,{res:false}))});
+    if(G.day%3===0){G.love=Math.min(100,G.love+3);updLoveBar()}
+    updQ('mq5',G.day);renderEvs();checkEnds();save();
+  }
+}
+
+function updQ(type,val){
+  var all=[].concat(G.quests.main,G.quests.side);
+  all.forEach(function(q){
+    if(q.claimed)return;
+    var old=q.prog;
+    if(q.type==='words'&&(type==='mq2'))q.prog=Math.min(q.goal,q.prog+val);
+    else if(q.type==='chat'&&type==='mq1')q.prog=Math.min(q.goal,q.prog+1);
+    else if(q.type==='chat_c'&&type==='chat_c')q.prog=Math.min(q.goal,q.prog+1);
+    else if(q.type==='ev_food'&&type==='ev_food'){q.prog=1;q.done=true}
+    if(q.type==='trust')q.prog=Math.min(q.goal,G.trust);
+    if(q.type==='fame')q.prog=Math.min(q.goal,G.fame);
+    if(q.type==='love')q.prog=Math.min(q.goal,G.love);
+    if(q.type==='day')q.prog=Math.min(q.goal,G.day);
+    if(q.type==='escape')q.prog=Math.min(q.goal,G.escape);
+    if(q.type==='ability')q.prog=Math.min(q.goal,G.abilities.filter(function(a){return a.unlocked}).length-1);
+    if(q.type==='ability_lv')q.prog=Math.min(q.goal,Math.max.apply(null,G.abilities.map(function(a){return a.level})));
+    if(q.prog>=q.goal&&!q.done){q.done=true;toast('📜 任務完成：'+q.title+' — 去領取獎勵！','jade')}
+  });
+  renderQ();
+}
+function renderQ(){rQL('mq-list',G.quests.main);rQL('sq-list',G.quests.side)}
+function rQL(id,list){
+  var el=document.getElementById(id);if(!el)return;el.innerHTML='';
+  list.forEach(function(q){
+    var pct=Math.round((q.prog/q.goal)*100);var bc=q.claimed?'qb-d':(q.id.startsWith('m')?'qb-m':'qb-s');
+    var div=document.createElement('div');div.className='qcard';
+    div.innerHTML='<div class="qhdr"><div class="qtitle">'+(q.done&&!q.claimed?'✅ ':q.claimed?'✓ ':'')+q.title+'</div><span class="qbadge '+bc+'">'+(q.claimed?'已完成':q.done?'可領取':'進行中')+'</span></div>'+
+      '<div class="qdesc">'+q.desc+'</div>'+
+      '<div class="qprog"><div class="qpbar"><div class="qpfill" style="width:'+pct+'%"></div></div><div class="qptxt">'+q.prog+'/'+q.goal+'</div></div>'+
+      '<div style="display:flex;align-items:center;gap:5px"><span class="qreward">🎁 '+q.reward+'</span>'+(q.done&&!q.claimed?'<button class="qclaim" onclick="claimQ(\''+q.id+'\')">領取</button>':'')+'</div>';
+    el.appendChild(div);
+  });
+}
+function claimQ(id){
+  var all=[].concat(G.quests.main,G.quests.side);var q=all.find(function(x){return x.id===id});if(!q||q.claimed)return;
+  q.claimed=true;var r=q.reward;
+  var m=r.match(/NT\$(\d+)/);if(m)G.money+=parseInt(m[1]);
+  var t=r.match(/信任\+(\d+)/);if(t)G.trust=Math.min(100,G.trust+parseInt(t[1]));
+  var f=r.match(/人氣\+(\d+)/);if(f)G.fame+=parseInt(f[1]);
+  var p=r.match(/異能值\+(\d+)/);if(p)G.power=Math.min(999,G.power+parseInt(p[1]));
+  var l=r.match(/好感\+(\d+)/);if(l){G.love=Math.min(100,G.love+parseInt(l[1]));updLoveBar()}
+  var e=r.match(/脫離\+(\d+)/);if(e)G.escape=Math.min(100,G.escape+parseInt(e[1]));
+  toast('🎁 已領取：'+q.reward,'jade');renderQ();updateHUD();checkEnds();save();
+}
+
+function renderEvs(){
+  var el=document.getElementById('ev-list');el.innerHTML='';
+  var active=G.activeEvents.filter(function(e){return!e.res});
+  if(!active.length){el.innerHTML='<div style="text-align:center;color:var(--ink3);padding:2rem 1rem;font-size:12px">✅ 目前沒有待處理事件<br>繼續寫作推進時間</div>';return}
+  active.forEach(function(ev){
+    var div=document.createElement('div');div.className='ecard';
+    div.innerHTML='<div class="eicon">'+ev.icon+'</div><div style="flex:1">'+
+      '<div class="etitle">'+ev.title+'<span class="bdg '+(ev.badge||'bi')+'">'+(ev.badge==='bu'?'緊急':'通知')+'</span></div>'+
+      '<div class="edesc">'+ev.desc+'</div>'+
+      '<div class="eacts"><button class="ebtn ok" onclick="resEv(\''+ev.id+'\')">'+ev.act+'</button>'+
+      '<button class="ebtn" onclick="skipEv(\''+ev.id+'\')">忽略</button></div></div>';
+    el.appendChild(div);
+  });
+}
+function resEv(id){
+  var ev=G.activeEvents.find(function(e){return e.id===id});if(!ev)return;
+  if(id==='landlord'){if(G.money<20000){toast('💸 存款不足 NT$20,000！','');return}G.money-=20000;toast('🏠 房租繳清！','jade')}
+  else if(id==='no-food'){if(G.money<120){toast('💸 連買食材的錢都不夠…','');return}G.money-=120;G.trust+=2;G.love=Math.min(100,G.love+2);updLoveBar();toast('🍜 '+G.charName+'說「……還不難吃」','jade');updQ('ev_food',1)}
+  else if(ev.fn==='shop'||ev.fn==='shop-food'){tab('shop');toast('👉 請在商店購買所需物品','');return}
+  else if(ev.fn==='write'){tab('write');return}
+  else if(ev.fn==='chat'||ev.fn==='char-req'){tab('chat');return}
+  else if(ev.fn==='awaken'){var ab=G.abilities.find(function(a){return a.id==='empathy'});if(ab){ab.unlocked=true;ab.level=1}G.power+=20;toast('✨ 共情感知覺醒！','jade');renderPW();updQ('mq4',1)}
+  else if(ev.fn==='comfort'){G.love=Math.min(100,G.love+5);G.trust=Math.min(100,G.trust+3);updLoveBar();toast('🌙 你陪他度過了難眠的夜晚','jade')}
+  else if(ev.fn==='love-up'){G.love=Math.min(100,G.love+6);updLoveBar();toast('💌 好感度提升！','rose')}
+  else if(ev.fn==='multi'){tab('lb');return}
+  else toast('✓ 事件已處理','jade');
+  ev.res=true;if(!G.resolvedEvents)G.resolvedEvents=[];G.resolvedEvents.push(id);
+  checkEsc();updateHUD();renderEvs();save();
+}
+function skipEv(id){var ev=G.activeEvents.find(function(e){return e.id===id});if(ev){ev.res=true;G.trust-=3;G.money-=80;toast('⏭️ 忽略事件，損失了信任和金錢','');updateHUD();renderEvs()}}
+
+function renderLovePanel(){updLoveBar();renderLoreEvs();renderMemLog()}
+function renderLoreEvs(){
+  var el=document.getElementById('lev-list');if(!el)return;el.innerHTML='';
+  LORE.forEach(function(le){var done=G.love>=le.at;var div=document.createElement('div');div.className='lev-item';div.innerHTML='<span style="font-size:16px">'+(done?'💕':'🔒')+'</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:'+(done?'var(--rose)':'var(--ink3)')+'">'+le.name+'</div><div style="font-size:11px;color:var(--ink3)">'+le.desc+'</div></div><div style="font-size:10px;color:'+(done?'var(--rose)':'var(--ink3)')+'">'+le.at+'好感</div>';el.appendChild(div)});
+}
+function updLoveBar(){
+  var lv=document.getElementById('love-val');var lb=document.getElementById('love-bar');
+  if(lv)lv.textContent=G.love+' / 100';if(lb)lb.style.width=G.love+'%';
+  var idx=Math.min(5,Math.floor(G.love/17));for(var i=0;i<6;i++){var el=document.getElementById('ls-'+i);if(el)el.className='ls'+(i===idx?' on':'')}
+  LORE.forEach(function(le){if(G.love>=le.at&&!le.done){le.done=true;var area=document.getElementById('love-unlock');if(area)area.innerHTML='<div style="background:var(--rose-l);border:1px solid rgba(163,48,96,.25);border-radius:var(--r6);padding:9px 12px;margin-top:.6rem"><div style="font-size:12px;font-weight:600;color:var(--rose)">💌 解鎖：'+le.name+'</div><div style="font-size:11px;color:var(--rose2);margin-top:2px">'+le.desc+'</div></div>';updQ('sq5',G.love);addMem('解鎖好感事件：「'+le.name+'」')}});
+}
+function addMem(text){G.memories.push({day:G.day,text:text});if(G.memories.length>20)G.memories=G.memories.slice(-20)}
+function renderMemLog(){var el=document.getElementById('mem-log');if(!el)return;el.innerHTML='';if(!G.memories.length){el.innerHTML='<div style="font-size:11px;color:var(--ink3);padding:.4rem 0">還沒有記憶……多和主角聊聊吧。</div>';return}G.memories.slice(-8).reverse().forEach(function(m){var div=document.createElement('div');div.className='mem-item';div.innerHTML='<div class="mem-day">第'+m.day+'天</div><div class="mem-txt">'+esc(m.text)+'</div>';el.appendChild(div)})}
+
+function renderPW(){
+  var el=document.getElementById('pw-grid');el.innerHTML='';
+  G.abilities.forEach(function(ab){var pct=Math.round((ab.level/ab.max)*100);var lk=!ab.unlocked;var div=document.createElement('div');div.className='pw-card'+(lk?' pw-locked':'');div.innerHTML='<div class="pw-name">'+ab.name+'</div><div class="pw-desc">'+ab.desc+'</div>'+(lk?'<div class="lk-hint">🔒 需要異能值達'+ab.unlockAt+'</div>':'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:var(--ink3)">Lv.'+ab.level+'/'+ab.max+'</span><button class="upg-btn" style="border-color:'+ab.color+';color:'+ab.color+'" onclick="upgAb(\''+ab.id+'\')">強化(200)</button></div><div class="pw-bar"><div class="pw-fill" style="width:'+pct+'%;background:'+ab.color+'"></div></div>');el.appendChild(div)});
+}
+function upgAb(id){var ab=G.abilities.find(function(a){return a.id===id});if(!ab||!ab.unlocked)return;if(G.power<200){toast('✨ 異能值不足200','');return}if(ab.level>=ab.max){toast('已達最高等級','');return}G.power-=200;ab.level++;toast('✨ '+ab.name+' 升至 Lv.'+ab.level,'jade');renderPW();updateHUD();updQ('sq6',ab.level);save()}
+
+var SHOP=[{icon:'🍜',name:'買食材',price:120,eff:'解決飲食問題',stat:'ev',evId:'no-food'},{icon:'🔥',name:'繳瓦斯費',price:350,eff:'恢復熱水供應',stat:'ev',evId:'no-gas'},{icon:'☕',name:'提神咖啡',price:45,eff:'寫作+400字',stat:'words',val:400,evId:''},{icon:'💊',name:'頭痛藥',price:120,eff:'異能恢復+5',stat:'power',val:5,evId:'headache'},{icon:'🌐',name:'繳網路費',price:290,eff:'恢復連線+人氣',stat:'fame',val:20,evId:'no-net'},{icon:'🎁',name:'主角禮物',price:500,eff:'信任+12 好感+8',stat:'multi',evId:''},{icon:'📚',name:'補充稿紙',price:80,eff:'異能值+15',stat:'power',val:15,evId:''},{icon:'🍱',name:'點外賣',price:85,eff:'信任+3',stat:'trust',val:3,evId:''}];
+function renderShop(){var el=document.getElementById('sh-grid');el.innerHTML='';SHOP.forEach(function(item){var div=document.createElement('div');div.className='sh-item';div.innerHTML='<div class="sh-ico">'+item.icon+'</div><div class="sh-name">'+item.name+'</div><div class="sh-price">NT$ '+item.price+'</div><div class="sh-eff">'+item.eff+'</div>';div.onclick=(function(it){return function(){buyItem(it)}})(item);el.appendChild(div)})}
+function buyItem(item){if(G.money<item.price){toast('💸 需要 NT$'+item.price,'');return}G.money-=item.price;if(item.stat==='trust')G.trust=Math.min(100,G.trust+item.val);else if(item.stat==='power')G.power=Math.min(999,G.power+item.val);else if(item.stat==='fame')G.fame+=item.val;else if(item.stat==='words')G.wordsToday=Math.min(G.wordsGoal,G.wordsToday+item.val);else if(item.stat==='multi'){G.trust=Math.min(100,G.trust+12);G.love=Math.min(100,G.love+8);updLoveBar();addMem('送給'+G.charName+'禮物，他偷偷笑了')}else if(item.stat==='ev'&&item.evId){var ev=G.activeEvents.find(function(e){return e.id===item.evId});if(ev){ev.res=true;renderEvs()}}toast(item.icon+' 購買了「'+item.name+'」','jade');checkEsc();updateHUD();save()}
+
+function renderLB(){var lb=[...LB_NPC,{name:G.authorName||'我',char:G.charName||'主角',esc:G.escape,online:true,emoji:'📖'}];lb.sort(function(a,b){return b.esc-a.esc});var el=document.getElementById('lb-list');if(!el)return;el.innerHTML='';lb.forEach(function(p,i){var isMe=p.name===(G.authorName||'我');var rn=i===0?'rn-1':i===1?'rn-2':i===2?'rn-3':'';var div=document.createElement('div');div.className='lb-row';div.style.background=isMe?'var(--gold-l)':'';div.innerHTML='<div class="rank-n '+rn+'">'+(i+1)+'</div><div class="p-av">'+p.emoji+'</div><div style="flex:1"><div class="p-name"><span class="od '+(p.online?'od-on':'od-off')+'"></span>'+p.name+(isMe?' (我)':'')+'</div><div class="p-sub">角色：'+p.char+'</div></div><div class="p-esc">'+p.esc+'%</div>';el.appendChild(div)})}
+
+function renderEnds(){var el=document.getElementById('ed-grid');if(!el)return;el.innerHTML='';ENDINGS.forEach(function(ed){var u=ed.fn();var div=document.createElement('div');div.className='ed-card '+(u?'unlocked':'locked');div.innerHTML='<div class="ed-icon">'+ed.icon+'</div><div class="ed-title">'+(u?'':' 🔒 ')+ed.title+'</div><div class="ed-cond">'+ed.cond+'</div><span class="ed-badge">'+(u?'已解鎖':'未解鎖')+'</span>';if(u)div.onclick=function(){showEnd(ed)};el.appendChild(div)})}
+function checkEnds(){renderEnds();ENDINGS.forEach(function(ed){if(ed.fn()&&!ed._shown){ed._shown=true;showEnd(ed)}})}
+function showEnd(ed){document.getElementById('m-em').textContent=ed.icon;document.getElementById('m-tit').textContent=ed.title;document.getElementById('m-body').textContent=ed.story;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function checkEsc(){G.escape=Math.min(100,Math.floor((G.trust*0.4)+(G.day*2)+(G.fame/20)+(G.love*0.1)));G.abilities.forEach(function(ab){if(ab.unlockAt&&G.power>=ab.unlockAt)ab.unlocked=true});updQ('escape',G.escape);updQ('trust',G.trust);updQ('fame',G.fame);updQ('love',G.love);updQ('day',G.day);renderLB()}
+function updateHUD(){document.getElementById('h-money').textContent=G.money.toLocaleString();document.getElementById('h-trust').textContent=G.trust;document.getElementById('h-power').textContent=G.power;document.getElementById('h-fame').textContent=G.fame.toLocaleString();document.getElementById('p-et').textContent=G.escape+'%';document.getElementById('p-ef').style.width=G.escape+'%';document.getElementById('p-wt').textContent=G.wordsToday+' / '+G.wordsGoal+' 字';document.getElementById('p-wf').style.width=Math.round((G.wordsToday/G.wordsGoal)*100)+'%'}
+
+var TABS=['chat','write','quest','events','love','power','shop','lb','ending'];
+function tab(name){document.querySelectorAll('.tb').forEach(function(b,i){b.className='tb'+(TABS[i]===name?' on':'')});TABS.forEach(function(n){var el=document.getElementById('p-'+n);if(el)el.className='panel'+(n===name?' active':'')});if(name==='love')renderLovePanel();if(name==='lb')renderLB();if(name==='ending')renderEnds();if(name==='quest')renderQ()}
+var _tt;function toast(msg,type){var t=document.getElementById('toast');var c={jade:'var(--jade)',gold:'var(--gold)',rose:'var(--rose)'};t.style.background=c[type]||'var(--ink2)';t.textContent=msg;t.className='toast show';clearTimeout(_tt);_tt=setTimeout(function(){t.className='toast'},2800)}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// Service Worker registration
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
+</script>
+</body>
+</html>
